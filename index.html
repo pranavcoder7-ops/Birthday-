@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A Special Surprise</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --bg-color: #E26D5C;
+            --card-bg: #FFF3E3;
+            --text-color: #4A3E3D;
+            --accent-color: #C05646;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow-x: hidden;
+            transition: background 1s ease;
+            position: relative;
+        }
+
+        .screen {
+            display: none;
+            width: 100%;
+            max-width: 600px;
+            padding: 20px;
+            text-align: center;
+            animation: fadeIn 0.8s ease forwards;
+            z-index: 2;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* SCREEN 1: PASSCODE CODES */
+        .lock-container {
+            background: var(--card-bg);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .polaroid {
+            background: white;
+            padding: 15px 15px 30px 15px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            transform: rotate(-3deg);
+            margin-bottom: 30px;
+            max-width: 220px;
+        }
+        .polaroid img {
+            width: 100%;
+            height: auto;
+            border-radius: 4px;
+        }
+        .polaroid-caption {
+            margin-top: 15px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            color: #555;
+        }
+        .passcode-display {
+            font-size: 2rem;
+            letter-spacing: 5px;
+            margin-bottom: 20px;
+            height: 40px;
+            font-weight: bold;
+        }
+        .keypad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            max-width: 250px;
+        }
+        .key {
+            background: white;
+            border: 2px solid var(--text-color);
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.2s;
+        }
+        .key:active {
+            background: var(--text-color);
+            color: white;
+        }
+
+        /* SCREEN 2: LOADING SCREEN */
+        .loader {
+            border: 4px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top: 4px solid white;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* SCREEN 3: ENVELOPE */
+        .envelope-wrapper {
+            cursor: pointer;
+            display: inline-block;
+            animation: float 3s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        .envelope-text {
+            color: white;
+            margin-top: 20px;
+            font-size: 1.2rem;
+        }
+
+        /* SCREEN 4: THE MAIN LETTER */
+        .letter-card {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            text-align: left;
+            line-height: 1.6;
+        }
+        .letter-card h2 {
+            text-align: center;
+            color: var(--accent-color);
+            margin-bottom: 20px;
+        }
+        .photo-gallery {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin: 25px 0;
+        }
+        .gallery-img {
+            width: 100%;
+            height: 280px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 4px solid white;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .next-btn {
+            display: block;
+            width: 100%;
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 12px;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        /* SCREEN 5: CAKE & WISH */
+        .cake-container {
+            position: relative;
+            display: inline-block;
+            margin-top: 50px;
+            cursor: pointer;
+            z-index: 5;
+        }
+        .cake-emoji {
+            font-size: 8rem;
+            position: relative;
+        }
+        .candles {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+        }
+        .candle {
+            width: 8px;
+            height: 35px;
+            background: linear-gradient(to bottom, #7bdff2, #b2ebf2);
+            position: relative;
+            border-radius: 2px;
+        }
+        .flame {
+            position: absolute;
+            top: -15px;
+            left: -2px;
+            width: 12px;
+            height: 15px;
+            background: #ff9100;
+            border-radius: 50% 50% 20% 20%;
+            box-shadow: 0 0 10px #ff9100;
+            animation: flicker 0.1s ease-in-out infinite alternate;
+        }
+        @keyframes flicker {
+            0 { transform: scale(1); }
+            100% { transform: scale(1.1) rotate(2deg); }
+        }
+        .hbd-banner {
+            font-size: 2rem;
+            color: white;
+            margin-top: 30px;
+            font-weight: bold;
+            opacity: 0;
+            transition: opacity 1s ease;
+        }
+        .hbd-banner.reveal {
+            opacity: 1;
+        }
+
+        /* NEW: FLOATING BALLOONS */
+        .balloon-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none; /* Let clicks pass through */
+            overflow: hidden;
+            z-index: 1;
+            display: none; /* Starts hidden */
+        }
+        .balloon {
+            position: absolute;
+            bottom: -150px;
+            width: 60px;
+            height: 75px;
+            border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%;
+            animation: floatUp 7s linear infinite;
+        }
+        .balloon::after {
+            content: "🎈";
+            font-size: 3.5rem;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        @keyframes floatUp {
+            0% { transform: translateY(0) translateX(0); opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-120vh) translateX(50px); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <audio id="bgMusic" src="happy_Birthday_song_A_Aa_2_Bgm_Ringtone___Trending_Ringtone_Download_Link___Caller_Tune___MeloGrove(48k).mp3" loop></audio>
+
+    <div id="balloonArea" class="balloon-container"></div>
+
+    <div id="screenLock" class="screen active">
+        <div class="lock-container">
+            <div class="polaroid">
+                <img src="magical-birthday-wish-stockcake.jpg" alt="Birthday Friend">
+                <div class="polaroid-caption">Happy Birthday Sharvari 🥳🎉</div>
+            </div>
+            <div style="margin-bottom: 10px; font-weight: bold;">ENTER PASSWORD:</div>
+            <div class="passcode-display" id="passcodeDisplay">________</div>
+            <div class="keypad">
+                <button class="key" onclick="pressKey('1')">1</button>
+                <button class="key" onclick="pressKey('2')">2</button>
+                <button class="key" onclick="pressKey('3')">3</button>
+                <button class="key" onclick="pressKey('4')">4</button>
+                <button class="key" onclick="pressKey('5')">5</button>
+                <button class="key" onclick="pressKey('6')">6</button>
+                <button class="key" onclick="pressKey('7')">7</button>
+                <button class="key" onclick="pressKey('8')">8</button>
+                <button class="key" onclick="pressKey('9')">9</button>
+                <button class="key" onclick="pressKey('0')">0</button>
+                <button class="key" style="background:#ddd;" onclick="clearPasscode()">⌫</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="screenLoading" class="screen">
+        <h2 style="color: white; font-size: 1.5rem;">Hey look!</h2>
+        <div class="loader"></div>
+        <p style="color: white;">Loading your birthday surprise...</p>
+    </div>
+
+    <div id="screenEnvelope" class="screen">
+        <div class="envelope-wrapper" onclick="openEnvelope()">
+            <div style="font-size: 7rem;">✉️</div>
+        </div>
+        <div class="envelope-text">You have a new message! Click to open.</div>
+    </div>
+
+    <div id="screenLetter" class="screen">
+        <div class="letter-card">
+            <h2>Happy Birthday Sharvari 🎉</h2>
+            <p>I wanted to create something completely unique just for you. Hope you have an amazing day. Wishing you the absolute best year ahead filled with success. Happy Birthday Sharvari 🥳🎉. </p>
+            
+            <div class="photo-gallery">
+                <img class="gallery-img" src="Snapchat-911711236.jpg" alt="Memory 1">
+                <img class="gallery-img" src="Snapchat-1047236586.jpg" alt="Memory 2">
+                <img class="gallery-img" src="Snapchat-1759475280.jpg" alt="Memory 3">
+                <img class="gallery-img" src="WhatsApp Image 2026-07-04 at 7.29.33 PM.jpeg" alt="Memory 4">
+ 
+            </div>
+            
+            <button class="next-btn" onclick="goToCake()">Make a Wish ✨</button>
+        </div>
+    </div>
+
+    <div id="screenCake" class="screen">
+        <p style="color: white; font-size: 1.2rem; margin-bottom: 10px;">✨ Make a wish and click the cake to blow out the candles! ✨</p>
+        <div class="cake-container" onclick="blowCandles()">
+            <div class="candles" id="candleGroup">
+                <div class="candle"><div class="flame"></div></div>
+                <div class="candle"><div class="flame"></div></div>
+                <div class="candle"><div class="flame"></div></div>
+            </div>
+            <div class="cake-emoji">🎂</div>
+        </div>
+        <div class="hbd-banner" id="hbdBanner">✨ HAPPY BIRTHDAY TO YOU 🎉🎂 ✨</div>
+    </div>
+
+    <script>
+        const CORRECT_PASSCODE = "15072007"; 
+        let currentInput = "";
+
+        function pressKey(num) {
+            if (currentInput.length < 8) {
+                currentInput += num;
+                updateDisplay();
+            }
+            if (currentInput.length === 8) {
+                setTimeout(checkPasscode, 300);
+            }
+        }
+
+        function clearPasscode() {
+            currentInput = currentInput.slice(0, -1);
+            updateDisplay();
+        }
+
+        function updateDisplay() {
+            let displayStr = currentInput;
+            while (displayStr.length < 8) {
+                displayStr += "_";
+            }
+            document.getElementById('passcodeDisplay').textContent = displayStr;
+        }
+
+        function checkPasscode() {
+            if (currentInput === CORRECT_PASSCODE) {
+                switchScreen('screenLock', 'screenLoading');
+                
+                // MUSIC STARTS PLYING HERE (Web browsers require user interaction like keypad taps before allowing audio)
+                document.getElementById('bgMusic').play().catch(e => console.log("Audio play delayed: ", e));
+
+                setTimeout(() => {
+                    switchScreen('screenLoading', 'screenEnvelope');
+                }, 2500);
+            } else {
+                alert("Wrong password!");
+                currentInput = "";
+                updateDisplay();
+            }
+        }
+
+        function openEnvelope() {
+            switchScreen('screenEnvelope', 'screenLetter');
+        }
+
+        function goToCake() {
+            switchScreen('screenLetter', 'screenCake');
+            document.body.style.backgroundColor = "#231F20";
+        }
+
+        function blowCandles() {
+            const flames = document.querySelectorAll('.flame');
+            flames.forEach(flame => flame.style.display = 'none');
+            
+            document.getElementById('hbdBanner').classList.add('reveal');
+
+            // NEW: SHOW AND SPARK FLOATING BALLOONS NOW
+            const balloonArea = document.getElementById('balloonArea');
+            balloonArea.style.display = 'block';
+            createBalloons();
+
+            // Trigger premium confetti shower
+            var duration = 5 * 1000;
+            var animationEnd = Date.now() + duration;
+            var defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 10 };
+
+            function randomInRange(min, max) {
+              return Math.random() * (max - min) + min;
+            }
+
+            var interval = setInterval(function() {
+              var timeLeft = animationEnd - Date.now();
+
+              if (timeLeft <= 0) {
+                return clearInterval(interval);
+              }
+
+              var particleCount = 50 * (timeLeft / duration);
+              confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } });
+              confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } });
+            }, 250);
+        }
+
+        // NEW: JAVASCRIPT TO SPARK BALLOONS GENERATION
+        function createBalloons() {
+            const area = document.getElementById('balloonArea');
+            for (let i = 0; i < 15; i++) {
+                let balloon = document.createElement('div');
+                balloon.className = 'balloon';
+                balloon.style.left = Math.random() * 90 + 'vw';
+                balloon.style.animationDelay = Math.random() * 4 + 's';
+                area.appendChild(balloon);
+            }
+        }
+
+        function switchScreen(fromId, toId) {
+            document.getElementById(fromId).classList.remove('active');
+            document.getElementById(toId).classList.add('active');
+        }
+    </script>
+</body>
+</html>
